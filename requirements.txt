@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+google-api-python-client
+google-ads
+google-auth-oauthlib
+google-auth-httplib2
