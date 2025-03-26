@@ -115,5 +115,3 @@ class GoogleAdsService:
         except Exception as e:
             logger.error(f"Unexpected error in search_ads: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail="Internal server error while fetching ads data")
-
-

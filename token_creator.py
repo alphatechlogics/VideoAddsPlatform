@@ -1,25 +1,34 @@
+import os
+import json
+from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-import json
 
-# Load the OAuth client credentials
-with open("client_secret_251479437235-jd1659flonnr284u763vmrv9ejarjvvp.apps.googleusercontent.com.json") as f:
-    client_info = json.load(f)
+# If modifying these scopes, delete the file token.json.
+SCOPES = [
+    'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/youtube.force-ssl',
+    'https://www.googleapis.com/auth/adwords'
+]
 
-SCOPES = ["https://www.googleapis.com/auth/adwords"]
+def main():
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.json'):
+        with open('token.json') as token:
+            creds = Credentials.from_authorized_user_info(json.load(token))
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
 
-# Authenticate the user via OAuth
-creds = Credentials.from_authorized_user_file('token.json', SCOPES) if False else None
-if not creds or not creds.valid:
-    if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-    else:
-        from google_auth_oauthlib.flow import InstalledAppFlow
-        flow = InstalledAppFlow.from_client_config(client_info, SCOPES)
-        creds = flow.run_local_server(port=8080)
-
-    # Save the credentials for the next run
-    with open('token.json', 'w') as token:
-        token.write(creds.to_json())
-
-print("Access Token Generated and Saved!")
+if __name__ == '__main__':
+    main()
