@@ -5,113 +5,57 @@ from app.models.ad import Ad
 from typing import List
 from fastapi import HTTPException
 import logging
+from googleapiclient.discovery import build
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class GoogleAdsService:
     def __init__(self):
+        self.youtube = build("youtube", "v3", developerKey=settings.youtube_api_key)
+
+    async def search_video_ads(self, keyword: str = None, category: str = None) -> List[Ad]:
+        """Search for video advertisements on YouTube"""
         try:
-            # Clean and format the customer ID
-            customer_id = str(settings.google_ads_login_customer_id).replace('-', '')
-            
-            
-            config = {
-                'developer_token': settings.google_ads_developer_token,
-                'client_id': settings.google_ads_client_id,
-                'client_secret': settings.google_ads_client_secret,
-                'refresh_token': settings.google_ads_refresh_token,
-                'login_customer_id': customer_id,
-                'use_proto_plus': True,
-                'version': 'v13'  # Specify API version
+            search_params = {
+                'q': f"{keyword} advertisement" if keyword else "advertisement",
+                'part': "snippet",
+                'type': "video",
+                'maxResults': 50,
+                'videoDuration': "short",  # Most ads are short
+                'relevanceLanguage': 'en'
             }
-            
-            logger.debug("Initializing Google Ads client...")
-            self.client = GoogleAdsClient.load_from_dict(config)
-            logger.info("Google Ads client initialized successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize Google Ads client: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to initialize Google Ads client: {str(e)}"
-            )
 
-    async def search_ads(self, keyword: str = None, category: str = None) -> List[Ad]:
-        try:
-            logger.debug(f"Searching ads with keyword: {keyword}, category: {category}")
-            ga_service = self.client.get_service("GoogleAdsService")
-            
-            # Build the GAQL query
-            query_conditions = []
-            if keyword:
-                query_conditions.append(f"ad_group_criterion.keyword.text LIKE '%{keyword}%'")
             if category:
-                query_conditions.append(f"campaign.advertising_channel_type = '{category}'")
+                search_params['q'] = f"{category} {search_params['q']}"
+            
+            logger.debug(f"Searching YouTube ads with params: {search_params}")
+            response = self.youtube.search().list(**search_params).execute()
 
-            where_clause = " AND ".join(query_conditions) if query_conditions else "1=1"
-            
-            query = f"""
-            SELECT
-                ad_group_ad.ad.id,
-                ad_group_ad.ad.name,
-                ad_group_ad.ad.type,
-                ad_group_ad.ad.final_urls,
-                ad_group.id,
-                ad_group.name,
-                campaign.id,
-                metrics.impressions,
-                metrics.clicks,
-                metrics.cost_micros
-            FROM ad_group_ad
-            WHERE {where_clause}
-            LIMIT 50
-            """
-            
-            # logger.debug(f"Executing GAQL query: {query}")
-            
-            # Execute search request with cleaned customer_id
-            customer_id = str(settings.google_ads_login_customer_id).replace('-', '')
-            response = ga_service.search(
-                customer_id=customer_id,
-                query=query
-            )
-
-            # Process results
             ads = []
-            for row in response:
+            for item in response.get("items", []):
                 try:
                     ad = Ad(
-                        ad_id=str(row.ad_group_ad.ad.id),
-                        advertiser=str(row.ad_group.name),
-                        duration=0,
+                        ad_id=item["id"]["videoId"],
+                        advertiser=item["snippet"]["channelTitle"],
+                        duration=0,  # Duration could be fetched with additional API call
                         metadata={
-                            "type": str(row.ad_group_ad.ad.type_),
-                            "final_urls": list(row.ad_group_ad.ad.final_urls),
-                            "impressions": int(row.metrics.impressions),
-                            "clicks": int(row.metrics.clicks),
-                            "cost_micros": int(row.metrics.cost_micros)
+                            "title": item["snippet"]["title"],
+                            "description": item["snippet"]["description"],
+                            "publishedAt": item["snippet"]["publishedAt"],
+                            "thumbnail": item["snippet"]["thumbnails"]["default"]["url"],
+                            "url": f"https://www.youtube.com/watch?v={item['id']['videoId']}"
                         },
-                        category=category or "undefined"
+                        category="video"
                     )
                     ads.append(ad)
                 except Exception as e:
-                    logger.error(f"Error processing ad row: {str(e)}")
+                    logger.error(f"Error processing ad: {str(e)}")
                     continue
 
-            logger.info(f"Successfully fetched {len(ads)} ads")
+            logger.info(f"Found {len(ads)} video ads")
             return ads
 
-        except GoogleAdsException as ex:
-            logger.error(f"Request with ID '{ex.request_id}' failed with status "
-                        f"'{ex.error.code().name}' and includes the following errors:")
-            for error in ex.failure.errors:
-                logger.error(f"\tError with message '{error.message}'.")
-                if error.location:
-                    for field_path_element in error.location.field_path_elements:
-                        logger.error(f"\t\tOn field: {field_path_element.field_name}")
-            raise HTTPException(status_code=400, detail=str(ex.failure.errors[0].message))
-        
         except Exception as e:
-            logger.error(f"Unexpected error in search_ads: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Internal server error while fetching ads data")
+            logger.error(f"Error searching video ads: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
