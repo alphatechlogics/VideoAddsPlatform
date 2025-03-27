@@ -34,10 +34,10 @@ async def search_videos(
 ):
     return await youtube_service.search_videos(keyword, category, channel_name)
 
-@router.get("/search-ads", response_model=List[Ad])
-async def search_ads(
+@router.get("/search-video-ads", response_model=List[Ad])
+async def search_video_ads(
     ads_service: GoogleAdsService = Depends(),
     keyword: Optional[str] = Query(None),
     category: Optional[str] = Query(None)
 ):
-    return await ads_service.search_ads(keyword, category)
+    return await ads_service.search_video_ads(keyword, category)
