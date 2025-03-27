@@ -4,6 +4,8 @@
 .env.*.local
 ven/
 *.json
+client_keys
+dev_keys
 
 # Dependencies
 node_modules/
