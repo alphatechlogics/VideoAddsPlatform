@@ -40,29 +40,45 @@ class YouTubeService:
             )
             response = request.execute()
             
+            # Add both ID->name and name->ID mappings
+            self.category_mapping = {}
             for item in response.get('items', []):
-                category_id = item['id']
                 category_name = item['snippet']['title'].lower()
+                category_id = item['id']
                 self.category_mapping[category_name] = category_id
-                
-            logger.info(f"Loaded {len(self.category_mapping)} video categories")
+                self.category_mapping[category_id] = category_name
+            
+            logger.debug(f"Loaded categories: {self.category_mapping}")
+            logger.info(f"Loaded {len(self.category_mapping) // 2} video categories")
         except Exception as e:
             logger.error(f"Error loading video categories: {str(e)}")
-            # Fallback to basic categories if API call fails
+            # Fallback categories if API fails
             self.category_mapping = {
-                'music': '10',
-                'entertainment': '24',
-                'gaming': '20',
-                'sports': '17',
-                'news': '25',
-                'education': '27',
-                'science': '28',
-                'technology': '28',
-                'travel': '19',
-                'howto': '26'
+                'entertainment': '24', '24': 'entertainment',
+                'music': '10', '10': 'music',
+                'gaming': '20', '20': 'gaming',
+                'sports': '17', '17': 'sports',
+                'news': '25', '25': 'news'
             }
 
-    async def search_videos(self, keyword: str = None, category: str = None, channel_id: str = None) -> List[Video]:
+    async def get_channel_id_by_name(self, channel_name: str) -> Optional[str]:
+        try:
+            request = self.youtube.search().list(
+                part="snippet",
+                type="channel",
+                q=channel_name,
+                maxResults=1
+            )
+            response = request.execute()
+
+            if response.get('items'):
+                return response['items'][0]['id']['channelId']
+            return None
+        except Exception as e:
+            logger.error(f"Error finding channel ID: {str(e)}")
+            return None
+
+    async def search_videos(self, keyword: str = None, category: str = None, channel_name: str = None) -> List[Video]:
         try:
             search_params = {
                 'part': 'snippet',
@@ -72,8 +88,15 @@ class YouTubeService:
             
             if keyword:
                 search_params['q'] = keyword
-            if channel_id:
-                search_params['channelId'] = channel_id
+
+            # Convert channel name to channel ID if provided
+            if channel_name:
+                channel_id = await self.get_channel_id_by_name(channel_name)
+                if channel_id:
+                    search_params['channelId'] = channel_id
+                else:
+                    logger.warning(f"Channel not found: {channel_name}")
+                    return []
 
             logger.debug(f"Searching videos with params: {search_params}")
             request = self.youtube.search().list(**search_params)
@@ -85,28 +108,34 @@ class YouTubeService:
                 metadata = await self.get_video_metadata(video_id)
                 
                 # Filter by category if specified
-                if category:
-                    category_id = self.category_mapping.get(category.lower())
-                    if category_id and metadata['snippet'].get('categoryId') != category_id:
+                if category and metadata.get('snippet'):
+                    video_category_id = metadata['snippet'].get('categoryId')
+                    video_category_name = self.category_mapping.get(video_category_id, '').lower()
+                    if category.lower() not in [video_category_id, video_category_name]:
                         continue
 
-                video = Video(
-                    title=item['snippet']['title'],
-                    description=item['snippet']['description'],
-                    video_id=video_id,
-                    channel_id=item['snippet']['channelId'],
-                    metadata=VideoMetadata(
-                        views=int(metadata['statistics'].get('viewCount', 0)),
-                        likes=int(metadata['statistics'].get('likeCount', 0)),
-                        comments=int(metadata['statistics'].get('commentCount', 0)),
-                        upload_date=datetime.strptime(
-                            item['snippet']['publishedAt'],
-                            '%Y-%m-%dT%H:%M:%SZ'
-                        ),
-                        categories=[metadata['snippet'].get('categoryId', 'undefined')]
+                # Create video object
+                try:
+                    video = Video(
+                        title=item['snippet']['title'],
+                        description=item['snippet']['description'],
+                        video_id=video_id,
+                        channel_id=item['snippet']['channelId'],
+                        metadata=VideoMetadata(
+                            views=int(metadata['statistics'].get('viewCount', 0)),
+                            likes=int(metadata['statistics'].get('likeCount', 0)),
+                            comments=int(metadata['statistics'].get('commentCount', 0)),
+                            upload_date=datetime.strptime(
+                                item['snippet']['publishedAt'],
+                                '%Y-%m-%dT%H:%M:%SZ'
+                            ),
+                            categories=[self.category_mapping.get(metadata['snippet'].get('categoryId'), 'undefined')]
+                        )
                     )
-                )
-                videos.append(video)
+                    videos.append(video)
+                except Exception as e:
+                    logger.error(f"Error processing video {video_id}: {str(e)}")
+                    continue
             
             logger.info(f"Found {len(videos)} videos matching criteria")
             return videos
