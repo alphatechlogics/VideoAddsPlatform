@@ -13,18 +13,7 @@ logger = logging.getLogger(__name__)
 class YouTubeService:
     def __init__(self):
         try:
-            # Load credentials from token.json
-            if os.path.exists('token.json'):
-                with open('token.json') as token:
-                    creds_data = json.load(token)
-                    creds = Credentials.from_authorized_user_info(creds_data)
-            else:
-                creds = None
-
-            if not creds or not creds.valid:
-                raise Exception("No valid credentials found. Please run token_creator.py first.")
-
-            self.youtube = build('youtube', 'v3', credentials=creds)
+            self.youtube = build('youtube', 'v3', developerKey=settings.youtube_api_key)
             self.category_mapping = {}
             self._load_categories()
             logger.info("YouTube service initialized successfully")
@@ -121,6 +110,7 @@ class YouTubeService:
                         description=item['snippet']['description'],
                         video_id=video_id,
                         channel_id=item['snippet']['channelId'],
+                        url=f"https://www.youtube.com/watch?v={video_id}",
                         metadata=VideoMetadata(
                             views=int(metadata['statistics'].get('viewCount', 0)),
                             likes=int(metadata['statistics'].get('likeCount', 0)),
@@ -129,7 +119,7 @@ class YouTubeService:
                                 item['snippet']['publishedAt'],
                                 '%Y-%m-%dT%H:%M:%SZ'
                             ),
-                            categories=[self.category_mapping.get(metadata['snippet'].get('categoryId'), 'undefined')]
+                            categories=[self.category_mapping.get(metadata['snippet'].get('categoryId'), 'undefined')]            
                         )
                     )
                     videos.append(video)
