@@ -76,3 +76,10 @@ video and ads/
 ├── requirements.txt          # Python dependencies
 └── run.sh                   # Startup script
 ```
+
+
+## offical documentation
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Google Ads API](https://developers.google.com/google-ads/api/docs/start)
+- [YouTube Data API](https://developers.google.com/youtube/v3/getting-started)
+- [Youtube API](https://developers.google.com/youtube/v3/docs/videos/list)
