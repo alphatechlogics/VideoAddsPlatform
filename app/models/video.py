@@ -13,7 +13,7 @@ class VideoMetadata(BaseModel):
     likes: int
     comments: int
     upload_date: datetime
-    categories: List[str]
+
 
 class Video(VideoBase):
     metadata: VideoMetadata

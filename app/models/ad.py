@@ -6,7 +6,6 @@ class Ad(BaseModel):
     advertiser: str
     duration: int = 0
     metadata: Dict = Field(default_factory=dict)
-    category: Optional[str] = "undefined"
 
     class Config:
         arbitrary_types_allowed = True
