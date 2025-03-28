@@ -17,8 +17,13 @@ async def root():
 
 @router.get("/youtube/status")
 async def youtube_status():
-    api_key = os.getenv("YOUTUBE_API_KEY")
-    return {"status": "connected" if api_key else "not configured"}
+    try:
+        api_key = os.getenv("YOUTUBE_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=400, detail="YouTube API key is not configured")
+        return {"status": "YouTube API is configured"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking YouTube API. invalidCriteria")
 
 
 @router.get("/search-videos", response_model=List[Video])
@@ -34,6 +39,7 @@ async def search_videos(
 async def search_video_ads(
     ads_service: GoogleAdsService = Depends(),
     keyword: Optional[str] = Query(None),
-    category: Optional[str] = Query(None)
+    category: Optional[str] = Query(None),
+    channel_name: Optional[str] = Query(None)
 ):
-    return await ads_service.search_video_ads(keyword, category)
+    return await ads_service.search_video_ads(keyword, category, channel_name)
