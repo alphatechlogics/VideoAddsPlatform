@@ -20,10 +20,6 @@ async def youtube_status():
     api_key = os.getenv("YOUTUBE_API_KEY")
     return {"status": "connected" if api_key else "not configured"}
 
-@router.get("/ads/status")
-async def ads_status():
-    developer_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN")
-    return {"status": "connected" if developer_token else "not configured"}
 
 @router.get("/search-videos", response_model=List[Video])
 async def search_videos(
