@@ -2,10 +2,6 @@ from fastapi import HTTPException, Security, Request
 from fastapi.security.api_key import APIKeyHeader
 from app.config.settings import settings
 from datetime import datetime, timedelta
-from jose import jwt, JWTError
-import logging
-
-logger = logging.getLogger(__name__)
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)  # Changed to False to handle manually
 
@@ -44,37 +40,17 @@ async def verify_api_key(request: Request, api_key: str = Security(api_key_heade
     if not api_key:
         raise HTTPException(
             status_code=401,
-            detail="No token provided. Please include X-API-Key header",
+            detail="No API key provided. Please include X-API-Key header",
             headers={"WWW-Authenticate": "Bearer"}
         )
     
-    try:
-        # Verify the token is valid JWT
-        payload = jwt.decode(
-            api_key,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.jwt_algorithm]
-        )
-        
-        # Check if token is expired
-        if 'exp' in payload:
-            exp_timestamp = payload['exp']
-            if datetime.utcnow().timestamp() > exp_timestamp:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Token has expired",
-                    headers={"WWW-Authenticate": "Bearer"}
-                )
-                
-    except JWTError as e:
-        logger.error(f"Token validation failed: {str(e)}")
+    if api_key != settings.JWT_SECRET_KEY:
         raise HTTPException(
-            status_code=401,
-            detail="Invalid token format or signature",
+            status_code=401, 
+            detail="Invalid API key. Please check your credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
     
-    # Rate limiting check
     client_id = request.client.host
     if rate_limiter.is_rate_limited(client_id):
         raise HTTPException(
