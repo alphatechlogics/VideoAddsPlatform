@@ -15,16 +15,6 @@ load_dotenv()
 async def root():
     return {"message": "Video Ads API is running"}
 
-@router.get("/youtube/status")
-async def youtube_status():
-    try:
-        api_key = os.getenv("YOUTUBE_API_KEY")
-        if not api_key:
-            raise HTTPException(status_code=400, detail="YouTube API key is not configured")
-        return {"status": "YouTube API is configured"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error checking YouTube API. invalidCriteria")
-
 
 @router.get("/search-videos", response_model=List[Video])
 async def search_videos(

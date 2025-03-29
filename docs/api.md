@@ -2,6 +2,81 @@
 
 Detailed documentation for the Video Ads Platform API endpoints.
 
+## Authentication
+
+### POST /api/auth/register
+
+Register a new user.
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "username": "string",
+  "email": "string"
+}
+```
+
+### POST /api/auth/token
+
+Get authentication token.
+
+**Request Body (form-data):**
+- `username`: string
+- `password`: string
+
+**Response:**
+```json
+{
+  "access_token": "string",
+  "token_type": "bearer",
+  "expires_in": 1800
+}
+```
+
+## Using API Endpoints
+
+All API endpoints (except authentication endpoints) require:
+1. JWT token in `X-API-Key` header
+2. Rate limit: 60 requests per minute per client
+
+**Example Request:**
+```bash
+curl -X GET "http://localhost:8000/api/search-videos" \
+     -H "X-API-Key: your.jwt.token" \
+     -H "Content-Type: application/json"
+```
+
+**Error Responses:**
+```json
+{
+  "detail": "No token provided. Please include X-API-Key header"
+}
+```
+```json
+{
+  "detail": "Invalid token format or signature"
+}
+```
+```json
+{
+  "detail": "Token has expired"
+}
+```
+```json
+{
+  "detail": "Rate limit exceeded. Please try again later."
+}
+```
+
 ## Video Search
 
 ### GET /api/search-videos
@@ -21,7 +96,6 @@ Search for YouTube videos with various filters.
     "description": "string",
     "video_id": "string",
     "channel_id": "string",
-    "url": "string",
     "url": "string",
     "metadata": {
       "views": 0,

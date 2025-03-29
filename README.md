@@ -11,10 +11,10 @@ A FastAPI-based platform that integrates YouTube and Google Ads APIs to search f
 - Video advertisement search with:
   - Keyword filtering
   - Category filtering
+  - Channel name filtering
   - Duration-based filtering
 - RESTful API endpoints
 - Swagger/OpenAPI documentation
-- Automatic category mapping
 - Error handling and logging
 
 ## Quick Start
@@ -28,6 +28,7 @@ pip install -r requirements.txt
 Create a `.env` file with:
 ```env
 YOUTUBE_API_KEY=your_youtube_api_key
+JWT_SECRET_KEY=your_jwt_secret_key
 ```
 
 3. **Run the Application**
@@ -43,6 +44,17 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## API Endpoints
 
+### Authentication
+- `POST /api/auth/register`
+  - Request body: username, email, password
+  - Returns: user details
+  - Description: Register a new user
+  
+- `POST /api/auth/token`
+-  Request body: username, password (form-data)
+  - Returns: JWT token
+  - Description: Generate a token for authentication
+
 ### Videos
 - `GET /api/search-videos`
   - Query params: keyword, category, channel_name
@@ -53,21 +65,24 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   - Query params: keyword, category
   - Returns list of video advertisements
 
-### Status
-- `GET /api/youtube/status` - YouTube API connection status
-- `GET /api/ads/status` - Google Ads API connection status
 
 ## Project Structure
 ```
 video and ads/
 ├── app/
 │   ├── api/
-│   │   └── routes.py          # API endpoints
+│   │   ├── routes.py          # API endpoints
+│   │   └── auth.py            # Authentication endpoints
 │   ├── config/
 │   │   └── settings.py        # Configuration management
 │   ├── models/
 │   │   ├── video.py          # Video data models
+│   │   ├── auth.py           # Authentication data models
 │   │   └── ad.py             # Advertisement data models
+│   ├── utils/
+│   │   └── auth.py            # Authentication utilities
+│   ├── middleware/
+│   │   └── auth.py            # Authentication middleware
 │   ├── services/
 │   │   ├── youtube_service.py # YouTube API integration
 │   │   └── ads_service.py     # Ads API integration
@@ -82,4 +97,5 @@ video and ads/
 - [FastAPI](https://fastapi.tiangolo.com/)
 - [Google Ads API](https://developers.google.com/google-ads/api/docs/start)
 - [YouTube Data API](https://developers.google.com/youtube/v3/getting-started)
-- [Youtube API](https://developers.google.com/youtube/v3/docs/videos/list)
+- [Youtube video](https://developers.google.com/youtube/v3/docs/videos)
+- [Youtube search](https://developers.google.com/youtube/v3/docs/search)

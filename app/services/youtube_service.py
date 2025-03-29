@@ -8,20 +8,32 @@ from datetime import datetime
 import logging
 import json
 import os
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
 class YouTubeService:
     def __init__(self):
         try:
+            if not settings.youtube_api_key:
+                raise ValueError("YouTube API key is not configured")
             self.youtube = build('youtube', 'v3', developerKey=settings.youtube_api_key)
-            logger.info("YouTube service initialized successfully") 
+            logger.info("YouTube service initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize YouTube service: {str(e)}")
-            raise
+            if "quota" in str(e).lower():
+                raise HTTPException(status_code=429, detail="YouTube API quota exceeded")
+            elif "invalid" in str(e).lower():
+                raise HTTPException(status_code=401, detail="Invalid YouTube API key")
+            else:
+                raise HTTPException(status_code=500, detail="YouTube service initialization failed")
 
     async def search_videos(self, keyword: str = None, category: str = None, channel_name: str = None) -> List[Video]:
         try:
+            # Input validation
+            if not any([keyword, category, channel_name]):
+                raise HTTPException(status_code=400, detail="At least one search parameter is required")
+            
             search_params = {
                 'part': 'snippet',
                 'maxResults': 50,
@@ -72,8 +84,14 @@ class YouTubeService:
             return videos
             
         except Exception as e:
-            logger.error(f"Error searching videos: {str(e)}")
-            raise Exception(f"Error searching videos: {str(e)}")
+            error_msg = str(e).lower()
+            if "quota" in error_msg:
+                raise HTTPException(status_code=429, detail="YouTube API quota exceeded")
+            elif "invalid" in error_msg:
+                raise HTTPException(status_code=400, detail="Invalid search parameters")
+            else:
+                logger.error(f"Error searching videos: {str(e)}")
+                raise HTTPException(status_code=500, detail="Error searching videos")
 
     async def get_video_metadata(self, video_id: str) -> dict:
         try:

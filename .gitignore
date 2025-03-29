@@ -6,6 +6,7 @@ ven/
 *.json
 client_keys
 dev_keys
+.vercelignore
 
 # Dependencies
 node_modules/
