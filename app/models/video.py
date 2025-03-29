@@ -7,6 +7,7 @@ class VideoBase(BaseModel):
     description: Optional[str]
     video_id: str
     channel_id: str
+    url: str
     
 class VideoMetadata(BaseModel):
     views: int
