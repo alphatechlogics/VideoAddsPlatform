@@ -47,16 +47,22 @@ JWT_SECRET_KEY=your_jwt_secret_key
    - `ads_service.py`: Manages advertisement-related operations
      - Video ad search
      - Ad metadata retrieval
+   - `unlisted_ads_service.py`: Manages unlisted advertisement operations
+     - Unlisted ad search
+     - Ad metadata retrieval
 
 2. **Models (`app/models/`)**
    - `video.py`: Video data structures
    - `ad.py`: Advertisement data structures
+   - `unlisted_ad.py`: Unlisted advertisement data structures
+   - `auth.py`: Authentication data structures
 
 3. **Configuration (`app/config/`)**
    - `settings.py`: Environment and API configuration
 
 4. **API Routes (`app/api/`)**
    - `routes.py`: API endpoint definitions
+   - `auth.py`: Authentication routes
 
 ## Testing
 

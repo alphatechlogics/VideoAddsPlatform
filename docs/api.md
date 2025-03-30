@@ -4,27 +4,6 @@ Detailed documentation for the Video Ads Platform API endpoints.
 
 ## Authentication
 
-### POST /api/auth/register
-
-Register a new user.
-
-**Request Body:**
-```json
-{
-  "username": "string",
-  "email": "string",
-  "password": "string"
-}
-```
-
-**Response:**
-```json
-{
-  "username": "string",
-  "email": "string"
-}
-```
-
 ### POST /api/auth/token
 
 Get an access token for API usage. No authentication required.
@@ -194,26 +173,3 @@ Search for video advertisements on YouTube.
 ]
 ```
 
-## Status Endpoints
-
-### GET /api/youtube/status
-
-Check YouTube API connection status.
-
-**Response:**
-```json
-{
-  "status": "connected"
-}
-```
-
-### GET /api/ads/status
-
-Check Google Ads API connection status.
-
-**Response:**
-```json
-{
-  "status": "connected"
-}
-```
