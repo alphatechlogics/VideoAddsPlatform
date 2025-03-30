@@ -27,11 +27,7 @@ Register a new user.
 
 ### POST /api/auth/token
 
-Get authentication token.
-
-**Request Body (form-data):**
-- `username`: string
-- `password`: string
+Get an access token for API usage. No authentication required.
 
 **Response:**
 ```json
@@ -44,14 +40,18 @@ Get authentication token.
 
 ## Using API Endpoints
 
-All API endpoints (except authentication endpoints) require:
+All API endpoints require:
 1. JWT token in `X-API-Key` header
 2. Rate limit: 60 requests per minute per client
 
 **Example Request:**
 ```bash
-curl -X GET "http://localhost:8000/api/search-videos" \
-     -H "X-API-Key: your.jwt.token" \
+# First, get a token
+curl -X POST "http://localhost:8000/api/auth/token"
+
+# Use token in requests
+curl -X GET "http://localhost:8000/api/search-unlisted" \
+     -H "X-API-Key: your.access.token" \
      -H "Content-Type: application/json"
 ```
 
@@ -106,6 +106,63 @@ Search for YouTube videos with various filters.
     }
   }
 ]
+```
+
+## Unlisted Video Search
+
+### GET /api/search-unlisted
+
+Search for unlisted videos with various filters.
+
+**Query Parameters:**
+- `keyword` (optional): Search term
+- `category` (optional): Video category from available categories
+- `channel_id` (optional): YouTube channel ID
+- `ads_only` (optional, default: true): Only return videos suitable for ads
+
+**Response:**
+```json
+{
+  "count": 0,
+  "videos": [
+    {
+      "title": "string",
+      "video_id": "string",
+      "url": "string",
+      "thumbnail": "string",
+      "channel_name": "string",
+      "channel_id": "string",
+      "subscribers": "string",
+      "category": "string",
+      "duration": "string",
+      "views": "string",
+      "likes": "string",
+      "dislikes": "string",
+      "upload_date": "string",
+      "languages": {
+        "auto_generated": ["string"],
+        "subtitles": ["string"]
+      },
+      "channel_info": {
+        "name": "string",
+        "channel_id": "string",
+        "subscribers": "string"
+      }
+    }
+  ]
+}
+```
+
+### GET /api/categories
+
+Get available video categories.
+
+**Response:**
+```json
+{
+  "categories": ["string"],
+  "total": 0
+}
 ```
 
 ## Advertisement Search

@@ -11,25 +11,29 @@ Create `.env` file with required API keys and tokens:
 ```env
 YOUTUBE_API_KEY=your_youtube_api_key
 JWT_SECRET_KEY=your_jwt_secret_key
-USERNAME=admin
-PASSWORD=adminpass
-EMAIL=admin@example.com
+
 ```
 
 ## Authentication Flow
 
-1. **Registration**
-   - Call `/api/auth/register` with user details
-   - Save user credentials securely
+1. **Token Generation**
+   - Call `/api/auth/token` to get a new token
+   - No credentials required
 
-2. **Token Generation**
-   - Call `/api/auth/token` with credentials
-   - Store returned JWT token
-
-3. **API Access**
+2. **API Access**
    - Include token in `X-API-Key` header
    - Handle token expiration (30 minutes)
    - Respect rate limiting (60 req/min)
+
+3. **Token Format**
+   ```json
+   {
+     "exp": "expiration timestamp",
+     "iat": "issued at timestamp",
+     "type": "access",
+     "jti": "unique token id"
+   }
+   ```
 
 ## Project Structure Explanation
 

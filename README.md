@@ -11,11 +11,19 @@ A FastAPI-based platform that integrates YouTube and Google Ads APIs to search f
 - Video advertisement search with:
   - Keyword filtering
   - Category filtering
-  - Channel name filtering
-  - Duration-based filtering
+  - Channel ID filtering
+  - Duration-based filtering (short ads)
+- Channel-based video search
+  - Search by channel ID
+  - Get channel metadata
+  - Filter channel videos
+- Simple token-based authentication
+  - No registration required
+  - Easy token generation
+  - Token expiration handling
 - RESTful API endpoints
 - Swagger/OpenAPI documentation
-- Error handling and logging
+- Rate limiting and error handling
 
 ## Quick Start
 
@@ -78,6 +86,7 @@ video and ads/
 │   ├── models/
 │   │   ├── video.py          # Video data models
 │   │   ├── auth.py           # Authentication data models
+│   │   ├── unlisted_ad.py       # unlisted data models
 │   │   └── ad.py             # Advertisement data models
 │   ├── utils/
 │   │   └── auth.py            # Authentication utilities
@@ -85,6 +94,7 @@ video and ads/
 │   │   └── auth.py            # Authentication middleware
 │   ├── services/
 │   │   ├── youtube_service.py # YouTube API integration
+│   │   ├── unlisted_ad.py     # Unlisted ad integration
 │   │   └── ads_service.py     # Ads API integration
 │   └── main.py               # FastAPI application
 ├── .env                      # Environment variables
