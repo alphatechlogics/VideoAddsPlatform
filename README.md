@@ -52,14 +52,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register`
-  - Request body: username, email, password
-  - Returns: user details
-  - Description: Register a new user
   
 - `POST /api/auth/token`
--  Request body: username, password (form-data)
   - Returns: JWT token
   - Description: Generate a token for authentication
 
@@ -72,6 +66,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - `GET /api/search-video-ads`
   - Query params: keyword, category
   - Returns list of video advertisements
+
+### Unlisted Ads
+- `GET /api/search-unlisted-ads`
+  - Query params: keyword, category, channel_id, duration
+  - Returns list of unlisted advertisements
 
 
 ## Project Structure
@@ -109,3 +108,4 @@ video and ads/
 - [YouTube Data API](https://developers.google.com/youtube/v3/getting-started)
 - [Youtube video](https://developers.google.com/youtube/v3/docs/videos)
 - [Youtube search](https://developers.google.com/youtube/v3/docs/search)
+- [Unlisted ads from here](https://filmot.com/)
