@@ -2,8 +2,11 @@ from fastapi import HTTPException, Security, Request
 from fastapi.security.api_key import APIKeyHeader
 from app.config.settings import settings
 from datetime import datetime, timedelta
+from jose import jwt, JWTError
+import logging
 
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)  # Changed to False to handle manually
+logger = logging.getLogger(__name__)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 class RateLimiter:
     def __init__(self):
@@ -40,17 +43,44 @@ async def verify_api_key(request: Request, api_key: str = Security(api_key_heade
     if not api_key:
         raise HTTPException(
             status_code=401,
-            detail="No API key provided. Please include X-API-Key header",
-            headers={"WWW-Authenticate": "Bearer"}
+            detail="No API key provided. Please include X-API-Key header"
         )
     
-    if api_key != settings.JWT_SECRET_KEY:
+    try:
+        # Verify token is valid
+        payload = jwt.decode(
+            api_key,
+            str(settings.JWT_SECRET_KEY),  # Convert to string
+            algorithms=[settings.jwt_algorithm]  # Use list of algorithms
+        )
+        
+        # Check token expiration
+        exp = payload.get('exp')
+        if not exp:
+            raise HTTPException(status_code=401, detail="Token has no expiration")
+        
+        if datetime.utcfromtimestamp(exp) < datetime.utcnow():
+            raise HTTPException(status_code=401, detail="Token has expired")
+            
+        # Store token info in request state for later use if needed
+        request.state.token_data = payload
+        
+    except JWTError as e:
+        logger.error(f"JWT verification failed: {str(e)}")
         raise HTTPException(
-            status_code=401, 
-            detail="Invalid API key. Please check your credentials",
+            status_code=401,
+            detail="Invalid token format or signature",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    except Exception as e:
+        logger.error(f"Token verification error: {str(e)}")
+        raise HTTPException(
+            status_code=401,
+            detail=str(e),
             headers={"WWW-Authenticate": "Bearer"}
         )
     
+    # Rate limiting check
     client_id = request.client.host
     if rate_limiter.is_rate_limited(client_id):
         raise HTTPException(
