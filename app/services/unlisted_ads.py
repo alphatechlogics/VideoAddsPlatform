@@ -38,6 +38,13 @@ class UnlistedVideoFinder:
     def __init__(self):
         self.base_url = "https://filmot.com/unlistedSearch"
         self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive'
+        })
+
 
     def _get_category_id(self, category_name: str) -> Optional[str]:
         """Convert category name to ID."""
@@ -195,6 +202,9 @@ class UnlistedVideoFinder:
                 params['page'] = page
                 try:
                     response = self.session.get(self.base_url, params=params)
+                    if response.status_code == 403:
+                        logger.error(f"Access forbidden for page {page}: {response.url}")
+                        continue
                     response.raise_for_status()
                     
                     if not response.text:
