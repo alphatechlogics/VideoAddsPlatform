@@ -3,10 +3,10 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    youtube_api_key: str
+    youtube_api_key: str 
     rate_limit_per_minute: int = 60
     environment: str = "development"
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str 
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 120
 

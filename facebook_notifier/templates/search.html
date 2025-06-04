@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Videos - Facebook Notifier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% load static %}
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        input[type="text"],
+        select {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            min-width: 200px;
+            color: #333;
+        }
+        input[type="text"]::placeholder {
+            color: #666;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }          
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+            row-gap: 35px;
+        }
+        .video-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            min-height: 350px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 1200px) {
+            .video-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .thumbnail {
+            width: 100%;
+            border-radius: 8px;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .video-info {
+            margin-top: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }        
+        .video-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .video-meta {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+            display: grid;
+            gap: 8px;
+        }
+        .video-meta p {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .video-meta i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        .video-meta .stats {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            background: #667eea;
+            margin-top: auto;
+            align-self: flex-start;
+        }
+        .category-badge i {
+            font-size: 0.8rem;
+        }        .watch-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .watch-button i {
+            font-size: 1.1rem;
+        }
+        .watch-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        .messages {
+            margin-bottom: 20px;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .alert-success { background: #28a745; }
+        .alert-error { background: #dc3545; }
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .nav-links a.primary {
+            background-color: #667eea;
+        }
+        .nav-links a.primary:hover {
+            background-color: #764ba2;
+        }
+        .search-status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }        .no-results {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .no-results i {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .no-results p {
+            margin: 0;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }        
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader-text {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hide-loader {
+            display: none !important;
+        }        .pagination-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pagination {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            gap: 8px;
+        }
+        .page-link {
+            padding: 8px 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            min-width: 40px;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin: 0 2px;
+        }
+        
+        .page-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-link.active {
+            background: #667eea;
+            pointer-events: none;
+        }
+          .pagination-container {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .error-message {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .api-config {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .api-config input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .api-config label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">        <div class="nav-links">
+            <a href="{% url 'home' %}" class="primary">Home</a>
+            <a href="{% url 'my_links' %}">My Links</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+
+        <h1>Search Videos</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}        <!-- Loader -->
+        <div id="loader" class="loader-container hide-loader">
+            <div class="loader">
+                <div class="loader-spinner"></div>
+                <div class="loader-text">Loading videos...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <form method="get" action="{% url 'search' %}" class="search-form" onsubmit="document.getElementById('loader').classList.remove('hide-loader');">
+                <input type="text" name="keyword" value="{{ search_params.keyword }}" placeholder="Search by keyword">
+                <input type="text" name="channel_id" value="{{ search_params.channel_id }}" placeholder="Channel ID">
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for category_id, category_name in categories %}
+                    <option value="{{ category_id }}" {% if search_params.category == category_id %}selected{% endif %}>
+                        {{ category_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+            </form>
+
+            {% if error_message %}
+            <div class="error-message">
+                {{ error_message }}
+            </div>
+            {% endif %}            <div class="video-grid">
+                {% if videos %}
+                    {% for video in videos %}
+                        <div class="video-card">
+                            <img src="{{ video.thumbnail }}" alt="{{ video.title }}" class="thumbnail">
+                            <div class="video-info">
+                                <h3>{{ video.title }}</h3>
+                                <div class="video-meta">
+                                    <p>
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>{{ video.channel_name }}</span>
+                                    </p>
+                                    <div class="stats">
+                                        <p>
+                                            <i class="fas fa-users"></i>
+                                            <span>{{ video.subscribers }}</span>
+                                        </p>
+                                        <p>
+                                            <i class="fas fa-eye"></i>
+                                            <span>{{ video.views }}</span>
+                                        </p>
+                                        <p>
+                                            <i class="fas fa-clock"></i>
+                                            <span>{{ video.duration }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="category-badge">
+                                    <i class="fas fa-tag"></i>
+                                    {{ video.category }}
+                                </span>
+                                <a href="{{ video.url }}" class="watch-button" target="_blank">
+                                    <i class="fas fa-play-circle"></i>
+                                    Watch Video
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% elif search_params.keyword or search_params.channel_id or search_params.category %}
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>No videos found matching your search criteria.</p>
+                        </div>                    {% endif %}
+            </div>
+            {% if videos and videos.paginator.num_pages > 1 %}
+            <div class="pagination-wrapper">
+                <div class="pagination-container">
+                    <div class="pagination">
+                        {% if videos.has_previous %}                            <a href="?page={{ videos.previous_page_number }}{% if search_params.keyword %}&keyword={{ search_params.keyword }}{% endif %}{% if search_params.channel_id %}&channel_id={{ search_params.channel_id }}{% endif %}{% if search_params.category %}&category={{ search_params.category }}{% endif %}" class="page-link">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        {% endif %}
+                          {% with ''|center:5 as range %}
+                            {% for _ in range %}
+                                {% with page_number=forloop.counter|add:videos.number|add:-3 %}
+                                    {% if page_number > 0 and page_number <= videos.paginator.num_pages %}
+                                        {% if page_number == videos.number %}
+                                            <span class="page-link active">{{ page_number }}</span>
+                                        {% else %}
+                                            <a href="?page={{ page_number }}{% if search_params.keyword %}&keyword={{ search_params.keyword }}{% endif %}{% if search_params.channel_id %}&channel_id={{ search_params.channel_id }}{% endif %}{% if search_params.category %}&category={{ search_params.category }}{% endif %}" class="page-link">{{ page_number }}</a>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                        
+                        {% if videos.has_next %}                            <a href="?page={{ videos.next_page_number }}{% if search_params.keyword %}&keyword={{ search_params.keyword }}{% endif %}{% if search_params.channel_id %}&channel_id={{ search_params.channel_id }}{% endif %}{% if search_params.category %}&category={{ search_params.category }}{% endif %}" class="page-link">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

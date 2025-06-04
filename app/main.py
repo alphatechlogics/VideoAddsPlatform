@@ -33,7 +33,7 @@ app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(
     api_router, 
     prefix="/api", 
-    dependencies=[Depends(verify_api_key)],
+    # dependencies=[Depends(verify_api_key)],
     tags=["api"]
 )
 
