@@ -1,7 +1,7 @@
 # Video Ads Platform API
 
 A FastAPI-based platform that integrates YouTube and Google Ads APIs to search for videos and video advertisements.
-[](https://github.com/alphatechlogics/VideoAddsPlatform/blob/c02b80a46fd6f021a93842a508325d442f24eb97/image.png)
+[](https://raw.github.com/alphatechlogics/VideoAddsPlatform/c02b80a46fd6f021a93842a508325d442f24eb97/image.png)
 
 ## Features
 
