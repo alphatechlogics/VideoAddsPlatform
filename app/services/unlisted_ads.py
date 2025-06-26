@@ -189,7 +189,7 @@ class UnlistedVideoFinder:
             }
             
             if keyword:
-                params['search'] = keyword
+                params['titleQuery'] = keyword
             if category:
                 category_id = self._get_category_id(category)
                 if category_id:

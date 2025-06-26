@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 ven/
+e-venv/
 *.json
 client_keys
 dev_keys
